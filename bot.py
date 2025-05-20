@@ -3,13 +3,13 @@ from datetime import datetime, timezone, timedelta
 from web3 import Web3
 
 # CONFIG
-IFTTT_WEBHOOK_URL = 'https://maker.ifttt.com/trigger/crypto_alert/with/key/your_ifttt_key'
+IFTTT_WEBHOOK_URL = 'https://maker.ifttt.com/trigger/crypto_alert/with/key/dyQNTFV24rbWaW9oQKFPeZ'
 WALLET_ADDRESS = '0x9E8ca6e7e4A612909ED892DC69Bd69325a497E73'
 POLYGON_RPC = 'https://polygon-rpc.com'
 w3 = Web3(Web3.HTTPProvider(POLYGON_RPC))
 GAS_FEE = 0.01
 
-# Tokens & Purchase Prices in GBP
+# Tokens & Purchase Prices in GBP (Base Prices)
 base_prices = {
     'USDT': 16.43,
     'ETH': 16.61,
@@ -23,7 +23,7 @@ base_prices = {
 token_data = {
     'USDT': {'address': '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', 'decimals': 6, 'id': 'tether'},
     'ETH': {'address': '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619', 'decimals': 18, 'id': 'ethereum'},
-    'MATIC': {'address': '0x0000000000000000000000000000000000001010', 'decimals': 18, 'id': 'matic'},
+    'MATIC': {'address': '0x0000000000000000000000000000000000001010', 'decimals': 18, 'id': 'polygon-pos'},
     'LINK': {'address': '0x53e0bca35ec356bd5dddfebbd1fc0fd03fabad39', 'decimals': 18, 'id': 'chainlink'},
     'AAVE': {'address': '0xd6df932a45c0f255f85145f286ea0b292b21c90b', 'decimals': 18, 'id': 'aave'},
     'WBTC': {'address': '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6', 'decimals': 8, 'id': 'wrapped-bitcoin'},
@@ -63,13 +63,16 @@ def send_alert(token, profit, base, current, amount):
 
 # Run check
 def run_bot():
-    prices = fetch_prices()
-    for token in base_prices:
-        balance = get_balance(token)
-        if balance == 0:
-            continue
-        profit = (prices[token] - base_prices[token]) * balance - GAS_FEE
-        if profit >= 2.0:
-            send_alert(token, profit, base_prices[token], prices[token], balance)
+    try:
+        prices = fetch_prices()
+        for token in base_prices:
+            balance = get_balance(token)
+            if balance == 0:
+                continue
+            profit = (prices[token] - base_prices[token]) * balance - GAS_FEE
+            if profit >= 2.0:
+                send_alert(token, profit, base_prices[token], prices[token], balance)
+    except Exception as e:
+        print(f"Error occurred: {e}")
 
 run_bot()
