@@ -15,14 +15,13 @@ w3 = Web3(Web3.HTTPProvider(POLYGON_RPC))
 
 # Base purchase prices in GBP
 base_prices = {
-    'USDT': 16.43,
-    'ETH': 16.61,
-    'POL': 15.74,
-    'LINK': 15.70,
-    'AAVE': 15.70,
-    'WBTC': 15.82,
-    'DAI': 11.77,
-    'POL': 15.60
+    'USDT': 0.75,   
+    'ETH': 1900.00,
+    'POL': 0.17,
+    'LINK': 11.50,
+    'AAVE': 165.00,
+    'WBTC': 77800.00,
+    'DAI': 0.77,
 }
 
 # Token metadata (CoinMarketCap uses symbol, not ID)
@@ -52,19 +51,24 @@ def get_balance(symbol):
 
 # Fetch GBP prices from CoinMarketCap
 def fetch_prices():
-    symbols = ','.join(token_data.keys())
-    url = f'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol={symbols}&convert=GBP'
-    headers = {'X-CMC_PRO_API_KEY': CMC_API_KEY}
-    res = requests.get(url, headers=headers)
-    data = res.json()
+    api_key = "YOUR_CMC_API_KEY"
+    headers = {
+        "Accepts": "application/json",
+        "X-CMC_PRO_API_KEY": api_key,
+    }
 
-    prices = {}
-    for sym in token_data:
-        try:
-            prices[sym] = data['data'][sym]['quote']['GBP']['price']
-        except:
-            print(f"⚠️ Warning: No GBP price for {sym}")
-    return prices
+    symbols = ','.join(token_data.keys())
+    url = f"https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest?symbol={symbols}&convert=GBP"
+
+    try:
+        res = requests.get(url, headers=headers).json()
+        prices = {}
+        for symbol in token_data:
+            prices[symbol] = res["data"][symbol]["quote"]["GBP"]["price"]
+        return prices
+    except Exception as e:
+        print(f"CMC API error: {e}")
+        return {}
 
 # Format and send alert to IFTTT
 def send_alert(symbol, profit, base, current, amount):
