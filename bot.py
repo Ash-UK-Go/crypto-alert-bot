@@ -19,17 +19,15 @@ base_prices = {
     'WBTC': 15.82,
     'DAI': 11.77
 }
-
 token_data = {
     'USDT': {'address': '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', 'decimals': 6, 'id': 'tether'},
     'ETH': {'address': '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619', 'decimals': 18, 'id': 'ethereum'},
-    'MATIC': {'address': '0x0000000000000000000000000000000000001010', 'decimals': 18, 'id': 'polygon-pos'},
+    'MATIC': {'address': '0x0000000000000000000000000000000000001010', 'decimals': 18, 'id': 'matic-network'},
     'LINK': {'address': '0x53e0bca35ec356bd5dddfebbd1fc0fd03fabad39', 'decimals': 18, 'id': 'chainlink'},
     'AAVE': {'address': '0xd6df932a45c0f255f85145f286ea0b292b21c90b', 'decimals': 18, 'id': 'aave'},
     'WBTC': {'address': '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6', 'decimals': 8, 'id': 'wrapped-bitcoin'},
     'DAI': {'address': '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063', 'decimals': 18, 'id': 'dai'}
 }
-
 # Get token balance from wallet
 def get_balance(symbol):
     token = token_data[symbol]
