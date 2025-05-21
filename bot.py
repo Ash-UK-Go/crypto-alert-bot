@@ -11,7 +11,7 @@ GAS_FEE = 0.01  # Estimated fixed gas fee
 # Web3 Setup
 w3 = Web3(Web3.HTTPProvider(POLYGON_RPC))
 
-# Base purchase prices in GBP (you can update these as needed)
+# Base purchase prices in GBP
 base_prices = {
     'USDT': 16.43,
     'ETH': 16.61,
@@ -51,8 +51,6 @@ def fetch_prices():
     ids = ','.join([token_data[s]['id'] for s in token_data])
     url = f'https://api.coingecko.com/api/v3/simple/price?ids={ids}&vs_currencies=gbp'
     res = requests.get(url).json()
-    
-    print(f"CoinGecko API Response: {res}") # Keep this for continued debugging if needed
 
     prices = {}
     for sym, data in token_data.items():
@@ -66,8 +64,6 @@ def fetch_prices():
 # Send IFTTT alert
 def send_alert(symbol, profit, base, current, amount):
     now = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=1)))
-    timestamp = now.strftime('%b %d, %Y at %I:%M%p')
-    
     payload = {
         "value1": f"🎯 Profit Target Hit: +£{profit:.2f}",
         "value2": (
@@ -78,7 +74,6 @@ def send_alert(symbol, profit, base, current, amount):
         ),
         "value3": "✅ Consider Booking"
     }
-    
     requests.post(IFTTT_WEBHOOK_URL, json=payload)
 
 # Main function
@@ -89,7 +84,7 @@ def run_bot():
             if symbol not in prices:
                 print(f"Skipping profit calculation for {symbol} as price data is missing.")
                 continue
-            
+
             balance = get_balance(symbol)
             if balance == 0:
                 continue
