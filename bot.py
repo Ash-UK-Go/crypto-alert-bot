@@ -13,13 +13,13 @@ w3 = Web3(Web3.HTTPProvider(POLYGON_RPC))
 
 # Base purchase prices in GBP
 base_prices = {
-    'USDT': 16.43,
-    'ETH': 16.61,
-    'MATIC': 15.74,
-    'LINK': 15.70,
-    'AAVE': 15.70,
-    'WBTC': 15.82,
-    'DAI': 11.77
+    'ETH': 2485.82,
+    'USDT': 1.00,
+    'POL': 0.23,
+    'LINK': 15.57,
+    'AAVE': 262.36,
+    'WBTC': 106055.56,
+    'DAI': 1.00
 }
 
 # Token metadata
