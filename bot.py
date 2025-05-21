@@ -17,7 +17,7 @@ w3 = Web3(Web3.HTTPProvider(POLYGON_RPC))
 base_prices = {
     'USDT': 16.43,
     'ETH': 16.61,
-    'MATIC': 15.74,
+    'POL': 15.74,
     'LINK': 15.70,
     'AAVE': 15.70,
     'WBTC': 15.82,
@@ -29,7 +29,7 @@ base_prices = {
 token_data = {
     'USDT': {'address': '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', 'decimals': 6},
     'ETH': {'address': '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619', 'decimals': 18},
-    'MATIC': {'address': '0x0000000000000000000000000000000000001010', 'decimals': 18},
+    'POL': {'address': '0x0000000000000000000000000000000000001010', 'decimals': 18},
     'LINK': {'address': '0x53e0bca35ec356bd5dddfebbd1fc0fd03fabad39', 'decimals': 18},
     'AAVE': {'address': '0xd6df932a45c0f255f85145f286ea0b292b21c90b', 'decimals': 18},
     'WBTC': {'address': '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6', 'decimals': 8},
@@ -40,7 +40,7 @@ token_data = {
 # Get balance from wallet
 def get_balance(symbol):
     token = token_data[symbol]
-    if symbol == 'MATIC':
+    if symbol == 'POL':
         balance = w3.eth.get_balance(WALLET_ADDRESS)
     else:
         abi = [{"constant": True, "inputs": [{"name": "_owner", "type": "address"}],
