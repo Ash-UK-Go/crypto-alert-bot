@@ -26,7 +26,7 @@ base_prices = {
 token_data = {
     'USDT': {'address': '0xc2132D05D31c914a87C6611C10748AEb04B58e8F', 'decimals': 6, 'id': 'tether'},
     'ETH': {'address': '0x7ceB23fD6bC0adD59E62ac25578270cFf1b9f619', 'decimals': 18, 'id': 'ethereum'},
-    'MATIC': {'address': '0x0000000000000000000000000000000000001010', 'decimals': 18, 'id': 'polygon-pos'},
+    'MATIC': {'address': '0x0000000000000000000000000000000000001010', 'decimals': 18, 'id': 'matic-network'},
     'LINK': {'address': '0x53e0bca35ec356bd5dddfebbd1fc0fd03fabad39', 'decimals': 18, 'id': 'chainlink'},
     'AAVE': {'address': '0xd6df932a45c0f255f85145f286ea0b292b21c90b', 'decimals': 18, 'id': 'aave'},
     'WBTC': {'address': '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6', 'decimals': 8, 'id': 'wrapped-bitcoin'},
@@ -52,8 +52,7 @@ def fetch_prices():
     url = f'https://api.coingecko.com/api/v3/simple/price?ids={ids}&vs_currencies=gbp'
     res = requests.get(url).json()
     
-    # --- Start of recommended change ---
-    print(f"CoinGecko API Response: {res}") # Added for debugging
+    print(f"CoinGecko API Response: {res}") # Keep this for continued debugging if needed
 
     prices = {}
     for sym, data in token_data.items():
@@ -62,10 +61,7 @@ def fetch_prices():
             prices[sym] = res[coingecko_id]['gbp']
         else:
             print(f"Warning: Could not fetch GBP price for {sym} (CoinGecko ID: {coingecko_id}). Skipping.")
-            # You might want to handle this more gracefully, e.g., by logging an error
-            # or setting a default price, or raising a specific exception.
     return prices
-    # --- End of recommended change ---
 
 # Send IFTTT alert
 def send_alert(symbol, profit, base, current, amount):
@@ -82,11 +78,9 @@ def run_bot():
     try:
         prices = fetch_prices()
         for symbol in base_prices:
-            # --- Start of recommended change ---
             if symbol not in prices:
                 print(f"Skipping profit calculation for {symbol} as price data is missing.")
                 continue
-            # --- End of recommended change ---
             
             balance = get_balance(symbol)
             if balance == 0:
