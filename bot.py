@@ -51,7 +51,21 @@ def fetch_prices():
     ids = ','.join([token_data[s]['id'] for s in token_data])
     url = f'https://api.coingecko.com/api/v3/simple/price?ids={ids}&vs_currencies=gbp'
     res = requests.get(url).json()
-    return {sym: res[data['id']]['gbp'] for sym, data in token_data.items()}
+    
+    # --- Start of recommended change ---
+    print(f"CoinGecko API Response: {res}") # Added for debugging
+
+    prices = {}
+    for sym, data in token_data.items():
+        coingecko_id = data['id']
+        if coingecko_id in res and 'gbp' in res[coingecko_id]:
+            prices[sym] = res[coingecko_id]['gbp']
+        else:
+            print(f"Warning: Could not fetch GBP price for {sym} (CoinGecko ID: {coingecko_id}). Skipping.")
+            # You might want to handle this more gracefully, e.g., by logging an error
+            # or setting a default price, or raising a specific exception.
+    return prices
+    # --- End of recommended change ---
 
 # Send IFTTT alert
 def send_alert(symbol, profit, base, current, amount):
@@ -68,6 +82,12 @@ def run_bot():
     try:
         prices = fetch_prices()
         for symbol in base_prices:
+            # --- Start of recommended change ---
+            if symbol not in prices:
+                print(f"Skipping profit calculation for {symbol} as price data is missing.")
+                continue
+            # --- End of recommended change ---
+            
             balance = get_balance(symbol)
             if balance == 0:
                 continue
