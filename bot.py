@@ -33,7 +33,6 @@ token_data = {
     'AAVE': {'address': '0xd6df932a45c0f255f85145f286ea0b292b21c90b', 'decimals': 18},
     'WBTC': {'address': '0x1bfd67037b42cf73acf2047067bd4f2c47d9bfd6', 'decimals': 8},
     'DAI': {'address': '0x8f3Cf7ad23Cd3CaDbD9735AFf958023239c6A063', 'decimals': 18},
-    'POL': {'address': '0xabc123abc123abc123abc123abc123abc123abcd', 'decimals': 18}  # Update POL token address
 }
 
 # Get balance from wallet
