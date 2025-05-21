@@ -66,11 +66,19 @@ def fetch_prices():
 # Send IFTTT alert
 def send_alert(symbol, profit, base, current, amount):
     now = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=1)))
+    timestamp = now.strftime('%b %d, %Y at %I:%M%p')
+    
     payload = {
-        "value1": f"{now.strftime('%b %d, %Y %I:%M%p')} | {symbol}",
-        "value2": f"📈 Profit: £{profit:.2f} | Base: £{base:.2f} → £{current:.2f}",
-        "value3": f"Holdings: {amount:.4f} {symbol} | ✅ Consider Booking"
+        "value1": f"🎯 Profit Target Hit: +£{profit:.2f}",
+        "value2": (
+            f"Token: {symbol}\n"
+            f"Holding: {amount:.4f}\n"
+            f"Price: £{base:.2f} → £{current:,.2f}\n"
+            f"Base: £{base:.2f}"
+        ),
+        "value3": "✅ Consider Booking"
     }
+    
     requests.post(IFTTT_WEBHOOK_URL, json=payload)
 
 # Main function
