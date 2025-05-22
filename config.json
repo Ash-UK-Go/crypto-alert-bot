@@ -1,0 +1,26 @@
+{
+  "ifttt_webhook_url": "https://maker.ifttt.com/trigger/crypto_alert/with/key/dyQNTFV24rbWaW9oQKFPeZ",
+  "polygon_wallet": "0x9E8ca6e7e4A612909ED892DC69Bd69325a497E73",
+  "polygon_rpc": "https://polygon-rpc.com",
+  "cmc_api_key": "Sm2KBpkX6WoK_XWcQU7FembI8ZSQX_85",
+  "telegram_chat_id": "7613643961",
+  "tracked_tokens": {
+    "POL": {"cmc_symbol": "MATIC", "decimals": 18, "entry_price": 0.17},
+    "USDT": {"cmc_symbol": "USDT", "decimals": 6, "entry_price": 0.75},
+    "ETH": {"cmc_symbol": "ETH", "decimals": 18, "entry_price": 1900.0},
+    "LINK": {"cmc_symbol": "LINK", "decimals": 18, "entry_price": 11.5},
+    "WBTC": {"cmc_symbol": "WBTC", "decimals": 8, "entry_price": 77800.0},
+    "AAVE": {"cmc_symbol": "AAVE", "decimals": 18, "entry_price": 165.0},
+    "DAI": {"cmc_symbol": "DAI", "decimals": 18, "entry_price": 0.77}
+  },
+  "alert_thresholds": {
+    "target_profit_percent": 4,
+    "price_surge_percent": 5,
+    "price_drop_percent": 5
+  },
+  "trading_hours": {
+    "start_hour": 8,
+    "end_hour": 18,
+    "days": ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+  }
+}
