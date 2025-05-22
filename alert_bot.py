@@ -9,11 +9,21 @@ import os
 with open('config.json') as f:
     config = json.load(f)
 
-CMC_API_KEY = config['CMC_API_KEY']
-TELEGRAM_BOT_TOKEN = config['TELEGRAM_BOT_TOKEN']
-TELEGRAM_CHAT_ID = config['TELEGRAM_CHAT_ID']
-ENTRY_PRICES = config['ENTRY_PRICES']  # Format: {'TOKEN_SYMBOL': entry_price}
-TARGET_PROFIT_PCT = config['TARGET_PROFIT_PCT']  # Format: {'TOKEN_SYMBOL': percentage}
+{
+  "CMC_API_KEY": "f9732761-8d27-48c0-97c7-b4118ce2df35",
+  "TELEGRAM_BOT_TOKEN": "7592488628:AAHeRfSkzy7i5aZlroaQcXxnL-b8ujcHzlY",
+  "TELEGRAM_CHAT_ID": "7613643961",
+  "ENTRY_PRICES": {
+    "POL": 0.182,
+    "USDT": 0.738,
+    "ETH": 1969.53,
+    "WBTC": 82543.21,
+    "LINK": 12.28,
+    "DAI": 0.74,
+    "AAVE": 84.00
+  },
+  "TARGET_PROFIT_PERCENT": 4
+}
 
 TOKENS = ["POL", "USDT", "DAI", "LINK", "WBTC", "ETH", "AAVE"]
 
