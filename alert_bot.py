@@ -88,8 +88,7 @@ def check_prices_and_trigger_alerts():
             msg_parts.append(f"⬇ {token} near bottom 10% of 24h range (£{price:.2f})")
 
         if msg_parts:
-            message = f"[{token}] Alerts at {now.strftime('%H:%M')}
-" + '\n'.join(msg_parts)
+            message = f"[{token}] Alerts at {now.strftime('%H:%M')}\n" + '\n'.join(msg_parts)
             send_telegram_alert(message)
 
 if __name__ == '__main__':
