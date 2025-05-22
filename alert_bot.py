@@ -29,7 +29,7 @@ TOKENS = ["POL", "USDT", "DAI", "LINK", "WBTC", "ETH", "AAVE"]
 
 HEADERS = {
     'Accepts': 'application/json',
-    'X-CMC_PRO_API_KEY': CMC_API_KEY
+    'X-CMC_PRO_API_KEY': "f9732761-8d27-48c0-97c7-b4118ce2df35"
 }
 
 BASE_URL = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
