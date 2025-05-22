@@ -1,98 +1,94 @@
 import requests
-from datetime import datetime, timezone, timedelta
+import time
+import json
+import datetime
+import pytz
 import os
 
-# CONFIG
-IFTTT_WEBHOOK_URL = 'https://maker.ifttt.com/trigger/crypto_alert/with/key/dyQNTFV24rbWaW9oQKFPeZ'
-API_KEY = "Sm2KBpkX6WoK_XWcQU7FembI8ZSQX_85"
+# Load config
+with open('config.json') as f:
+    config = json.load(f)
 
-# TOKENS TO MONITOR
-tokens = ["MATIC", "USDT", "ETH", "LINK", "AAVE", "WBTC", "DAI"]
+CMC_API_KEY = config['CMC_API_KEY']
+TELEGRAM_BOT_TOKEN = config['TELEGRAM_BOT_TOKEN']
+TELEGRAM_CHAT_ID = config['TELEGRAM_CHAT_ID']
+ENTRY_PRICES = config['ENTRY_PRICES']  # Format: {'TOKEN_SYMBOL': entry_price}
+TARGET_PROFIT_PCT = config['TARGET_PROFIT_PCT']  # Format: {'TOKEN_SYMBOL': percentage}
 
-# ENTRY PRICES (your average buy prices in GBP)
-entry_prices = {
-    "MATIC": 0.17,
-    "USDT": 0.75,
-    "ETH": 1900.0,
-    "LINK": 11.5,
-    "AAVE": 165.0,
-    "WBTC": 77800.0,
-    "DAI": 0.77
+TOKENS = ["POL", "USDT", "DAI", "LINK", "WBTC", "ETH", "AAVE"]
+
+HEADERS = {
+    'Accepts': 'application/json',
+    'X-CMC_PRO_API_KEY': CMC_API_KEY
 }
 
-# PROFIT THRESHOLD
-profit_target = 0.04  # 4% profit target for alert
+BASE_URL = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
 
-# TIMESTAMP
-now = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=1)))
+INDIAN_TZ = pytz.timezone('Europe/London')
 
-# FETCH PRICES FROM POLYGON.IO
-
-def get_prices():
-    url = f"https://api.polygon.io/v2/snapshot/locale/global/markets/crypto/tickers?apiKey={API_KEY}"
-    try:
-        res = requests.get(url).json()
-        prices = {}
-        for t in res.get("tickers", []):
-            symbol = t['ticker'].split(":")[-1].split("-")[0]
-            if symbol in tokens:
-                prices[symbol] = {
-                    "current": t['lastTrade']['p'],
-                    "open": t['day']['o'],
-                    "high": t['day']['h'],
-                    "low": t['day']['l']
-                }
-        return prices
-    except Exception as e:
-        print(f"Error fetching prices: {e}")
-        return {}
-
-# ALERT TO TELEGRAM VIA IFTTT
-
-def send_alert(title, details):
+def send_telegram_alert(message):
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     payload = {
-        "value1": title,
-        "value2": details,
-        "value3": now.strftime("%b %d, %Y at %I:%M%p")
+        'chat_id': TELEGRAM_CHAT_ID,
+        'text': message
     }
-    requests.post(IFTTT_WEBHOOK_URL, json=payload)
+    requests.post(url, data=payload)
 
-# CHECK CONDITIONS
+def fetch_token_data(symbol):
+    try:
+        response = requests.get(BASE_URL, headers=HEADERS, params={'symbol': symbol, 'convert': 'GBP'})
+        return response.json()['data'][symbol]
+    except Exception as e:
+        print(f"Error fetching data for {symbol}: {e}")
+        return None
 
-def check_alerts():
-    prices = get_prices()
-    for token in tokens:
-        if token not in prices:
+def check_prices_and_trigger_alerts():
+    now = datetime.datetime.now(INDIAN_TZ)
+    if now.weekday() > 4 or not (8 <= now.hour < 18):
+        return  # Skip if not Mon–Fri, 8am–6pm
+
+    for token in TOKENS:
+        data = fetch_token_data(token)
+        if not data:
             continue
 
-        current = prices[token]["current"]
-        open_price = prices[token]["open"]
-        high = prices[token]["high"]
-        low = prices[token]["low"]
-        entry = entry_prices[token]
+        quote = data['quote']['GBP']
+        price = quote['price']
+        change_3h = quote.get('percent_change_3h', 0)
+        low_24h = quote['low_24h']
+        high_24h = quote['high_24h']
 
-        # 1. Price Surge
-        if (current - open_price) / open_price >= 0.05:
-            send_alert(f"📈 {token} Surge Alert", f"+5% in last 3h\nFrom £{open_price:.2f} → £{current:.2f}")
+        msg_parts = []
 
-        # 2. Price Drop
-        if (open_price - current) / open_price >= 0.05:
-            send_alert(f"📉 {token} Drop Alert", f"-5% in last 3h\nFrom £{open_price:.2f} → £{current:.2f}")
+        # Price surge
+        if change_3h >= 5:
+            msg_parts.append(f"\u2B06 {token} is up {change_3h:.2f}% in last 3h \u2014 momentum rally?")
 
-        # 3. Profit Target Hit
-        if current >= entry * (1 + profit_target):
-            send_alert(
-                f"🎯 {token} Target Profit Hit",
-                f"Price: £{entry:.2f} → £{current:.2f}\nTarget: £{entry * (1 + profit_target):.2f}"
-            )
+        # Price drop
+        if change_3h <= -5:
+            msg_parts.append(f"\u2B07 {token} dropped {abs(change_3h):.2f}% in last 3h \u2014 buy the dip?")
 
-        # 4. Range Swing
-        range_ = high - low
-        if current >= high - 0.1 * range_:
-            send_alert(f"📈 {token} Near Day High", f"Current: £{current:.2f} vs High: £{high:.2f}")
-        elif current <= low + 0.1 * range_:
-            send_alert(f"📉 {token} Near Day Low", f"Current: £{current:.2f} vs Low: £{low:.2f}")
+        # Target profit
+        entry = ENTRY_PRICES.get(token)
+        target_pct = TARGET_PROFIT_PCT.get(token, 0.04)
+        if entry and price >= entry * (1 + target_pct):
+            msg_parts.append(f"\uD83D\uDCB0 {token} hit target profit (\u00A3{price:.2f}) vs entry \u00A3{entry:.2f}")
 
-# Run once
+        # Range swing
+        if high_24h != low_24h:
+            top_threshold = low_24h + 0.9 * (high_24h - low_24h)
+            bottom_threshold = low_24h + 0.1 * (high_24h - low_24h)
+
+            if price >= top_threshold:
+                msg_parts.append(f"\u2B06 {token} near top 10% of 24h range (\u00A3{price:.2f})")
+            elif price <= bottom_threshold:
+                msg_parts.append(f"\u2B07 {token} near bottom 10% of 24h range (\u00A3{price:.2f})")
+
+        if msg_parts:
+            message = f"[{token}] Alerts at {now.strftime('%H:%M')}\n" + '\n'.join(msg_parts)
+            send_telegram_alert(message)
+
 if __name__ == '__main__':
-    check_alerts()
+    while True:
+        check_prices_and_trigger_alerts()
+        time.sleep(60)  # Check every 60 seconds
