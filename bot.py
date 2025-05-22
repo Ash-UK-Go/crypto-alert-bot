@@ -15,13 +15,13 @@ w3 = Web3(Web3.HTTPProvider(POLYGON_RPC))
 
 # Base purchase prices in GBP
 base_prices = {
-    'DAI': 0.7439,
-    'USDT': 0.7439,
-    'LINK': 12.33,
-    'AAVE': 188.84,
-    'WBTC': 82274.69,
-    'POL': 0.1854,
-    'ETH': 1975.76
+    'DAI': 0.7433,    # 84.11786 DAI / £62.53523
+    'USDT': 0.7434,   # 45.94057 USDT / £34.15472
+    'AAVE': 190.24,   # £33.64994 / 0.17689
+    'ETH': 1972.44,   # £26.05973 / 0.01321
+    'LINK': 12.56,    # £21.97488 / 1.75171
+    'WBTC': 82306.75, # £21.39955 / 0.00026
+    'POL': 0.1856     # £19.99413 / 107.72703
 }
 
 # Token metadata (CoinMarketCap uses symbol, not ID)
