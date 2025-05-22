@@ -4,15 +4,65 @@
   "polygon_rpc": "https://polygon-rpc.com",
   "cmc_api_key": "f9732761-8d27-48c0-97c7-b4118ce2df35",
  "TELEGRAM_BOT_TOKEN": "7592488628:AAHeRfSkzy7i5aZlroaQcXxnL-b8ujcHzlY",
+  {
   "telegram_chat_id": "7613643961",
   "tracked_tokens": {
-    "POL": {"cmc_symbol": "MATIC", "decimals": 18, "entry_price": 0.17},
-    "USDT": {"cmc_symbol": "USDT", "decimals": 6, "entry_price": 0.75},
-    "ETH": {"cmc_symbol": "ETH", "decimals": 18, "entry_price": 1900.0},
-    "LINK": {"cmc_symbol": "LINK", "decimals": 18, "entry_price": 11.5},
-    "WBTC": {"cmc_symbol": "WBTC", "decimals": 8, "entry_price": 77800.0},
-    "AAVE": {"cmc_symbol": "AAVE", "decimals": 18, "entry_price": 165.0},
-    "DAI": {"cmc_symbol": "DAI", "decimals": 18, "entry_price": 0.77}
+    "POL": {
+      "cmc_symbol": "POL",
+      "entry_price": 0.182,
+      "buy_price": 0.172,
+      "sell_price": 0.195,
+      "wallet_min_usdt": 25,
+      "wallet_min_token": 100
+    },
+    "LINK": {
+      "cmc_symbol": "LINK",
+      "entry_price": 11.5,
+      "buy_price": 11.0,
+      "sell_price": 12.5,
+      "wallet_min_usdt": 20,
+      "wallet_min_token": 1.5
+    },
+    "AAVE": {
+      "cmc_symbol": "AAVE",
+      "entry_price": 165,
+      "buy_price": 165,
+      "sell_price": 190,
+      "wallet_min_usdt": 30,
+      "wallet_min_token": 0.1
+    },
+    "WBTC": {
+      "cmc_symbol": "WBTC",
+      "entry_price": 77800,
+      "buy_price": 77000,
+      "sell_price": 83000,
+      "wallet_min_usdt": 100,
+      "wallet_min_token": 0.001
+    },
+    "ETH": {
+      "cmc_symbol": "ETH",
+      "entry_price": 1969,
+      "buy_price": 1850,
+      "sell_price": 2050,
+      "wallet_min_usdt": 50,
+      "wallet_min_token": 0.01
+    },
+    "DAI": {
+      "cmc_symbol": "DAI",
+      "entry_price": 0.74,
+      "buy_price": 0.72,
+      "sell_price": 0.76,
+      "wallet_min_usdt": 10,
+      "wallet_min_token": 25
+    },
+    "USDT": {
+      "cmc_symbol": "USDT",
+      "entry_price": 0.738,
+      "buy_price": 0.72,
+      "sell_price": 0.75,
+      "wallet_min_usdt": 10,
+      "wallet_min_token": 25
+    }
   },
   "alert_thresholds": {
     "target_profit_percent": 4,
