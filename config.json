@@ -6,69 +6,66 @@
  "TELEGRAM_BOT_TOKEN": "7592488628:AAHeRfSkzy7i5aZlroaQcXxnL-b8ujcHzlY",
   {
   "telegram_chat_id": "7613643961",
+  {
+  "telegram_chat_id": "7613643961",
+
   "tracked_tokens": {
     "POL": {
-      "cmc_symbol": "POL",
+      "cmc_symbol": "MATIC",
       "entry_price": 0.182,
       "buy_price": 0.172,
       "sell_price": 0.195,
-      "wallet_min_usdt": 25,
-      "wallet_min_token": 100
-    },
-    "LINK": {
-      "cmc_symbol": "LINK",
-      "entry_price": 11.5,
-      "buy_price": 11.0,
-      "sell_price": 12.5,
-      "wallet_min_usdt": 20,
-      "wallet_min_token": 1.5
-    },
-    "AAVE": {
-      "cmc_symbol": "AAVE",
-      "entry_price": 165,
-      "buy_price": 165,
-      "sell_price": 190,
-      "wallet_min_usdt": 30,
-      "wallet_min_token": 0.1
-    },
-    "WBTC": {
-      "cmc_symbol": "WBTC",
-      "entry_price": 77800,
-      "buy_price": 77000,
-      "sell_price": 83000,
-      "wallet_min_usdt": 100,
-      "wallet_min_token": 0.001
-    },
-    "ETH": {
-      "cmc_symbol": "ETH",
-      "entry_price": 1969,
-      "buy_price": 1850,
-      "sell_price": 2050,
-      "wallet_min_usdt": 50,
-      "wallet_min_token": 0.01
-    },
-    "DAI": {
-      "cmc_symbol": "DAI",
-      "entry_price": 0.74,
-      "buy_price": 0.72,
-      "sell_price": 0.76,
-      "wallet_min_usdt": 10,
-      "wallet_min_token": 25
+      "min_usdt_balance": 25,
+      "min_token_holding": 100
     },
     "USDT": {
       "cmc_symbol": "USDT",
-      "entry_price": 0.738,
-      "buy_price": 0.72,
-      "sell_price": 0.75,
-      "wallet_min_usdt": 10,
-      "wallet_min_token": 25
+      "entry_price": 0.738
+    },
+    "ETH": {
+      "cmc_symbol": "ETH",
+      "entry_price": 1969.53,
+      "buy_price": 1920,
+      "sell_price": 2050,
+      "min_usdt_balance": 25,
+      "min_token_holding": 0.01
+    },
+    "WBTC": {
+      "cmc_symbol": "WBTC",
+      "entry_price": 82543.21,
+      "buy_price": 79000,
+      "sell_price": 87000,
+      "min_usdt_balance": 25,
+      "min_token_holding": 0.0002
+    },
+    "LINK": {
+      "cmc_symbol": "LINK",
+      "entry_price": 12.28,
+      "buy_price": 11.80,
+      "sell_price": 13.00,
+      "min_usdt_balance": 25,
+      "min_token_holding": 5
+    },
+    "DAI": {
+      "cmc_symbol": "DAI",
+      "entry_price": 0.74
+    },
+    "AAVE": {
+      "cmc_symbol": "AAVE",
+      "entry_price": 84.00,
+      "buy_price": 80.00,
+      "sell_price": 96.00,
+      "min_usdt_balance": 25,
+      "min_token_holding": 0.1
     }
   },
+
   "alert_thresholds": {
     "target_profit_percent": 4,
     "price_surge_percent": 5,
     "price_drop_percent": 5
   },
+
   "trading_hours": {
     "start_hour": 8,
     "end_hour": 18,
