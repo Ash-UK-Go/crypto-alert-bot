@@ -3,10 +3,7 @@
   "polygon_wallet": "0x9E8ca6e7e4A612909ED892DC69Bd69325a497E73",
   "polygon_rpc": "https://polygon-rpc.com",
   "cmc_api_key": "f9732761-8d27-48c0-97c7-b4118ce2df35",
- "TELEGRAM_BOT_TOKEN": "7592488628:AAHeRfSkzy7i5aZlroaQcXxnL-b8ujcHzlY",
-  {
-  "telegram_chat_id": "7613643961",
-  {
+  "telegram_bot_token": "7592488628:AAHeRfSkzy7i5aZlroaQcXxnL-b8ujcHzlY",
   "telegram_chat_id": "7613643961",
 
   "tracked_tokens": {
