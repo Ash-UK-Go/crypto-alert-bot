@@ -65,8 +65,8 @@ def check_prices_and_trigger_alerts():
         quote = data['quote']['GBP']
         price = quote['price']
         change_3h = quote.get('percent_change_3h', 0)
-        low_24h = quote['low_24h']
-        high_24h = quote['high_24h']
+        low_24h = quote['low']
+        high_24h = quote['high']
 
         msg_parts = []
 
