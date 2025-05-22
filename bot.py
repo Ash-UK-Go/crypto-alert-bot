@@ -50,7 +50,7 @@ def get_balance(symbol):
 
 # Fetch GBP prices from CoinMarketCap
 def fetch_prices():
-    api_key = "f9732761-8d27-48c0-97c7-b4118ce2df35"
+    api_key = os.getenv("CMC_API_KEY")
     headers = {
         "Accepts": "application/json",
         "X-CMC_PRO_API_KEY": api_key,
