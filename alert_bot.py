@@ -140,7 +140,48 @@ def fetch_token_data(symbol_from_config):
         print(f"❌ [{datetime.datetime.now(MONITOR_TIMEZONE).strftime('%H:%M:%S')}] An unexpected error occurred while fetching '{cmc_symbol}' data: {e}. Skipping.")
         return None
 
+
 def check_prices_and_trigger_alerts():
+# --- New BUY / SELL alerts (wallet simulated or live later) ---
+buy_price = TRACKED_TOKENS_CONFIG[token_symbol_internal].get('buy_price')
+sell_price = TRACKED_TOKENS_CONFIG[token_symbol_internal].get('sell_price')
+min_usdt = TRACKED_TOKENS_CONFIG[token_symbol_internal].get('min_usdt_balance', 0)
+min_holding = TRACKED_TOKENS_CONFIG[token_symbol_internal].get('min_token_holding', 0)
+
+# Simulated wallet (replace with real values later)
+mock_wallet = {
+    "USDT": 30,
+    "POL": 120,
+    "ETH": 0.05,
+    "WBTC": 0.0003,
+    "LINK": 5,
+    "AAVE": 0.12,
+    "DAI": 10
+}
+
+holding = mock_wallet.get(token_symbol_internal, 0)
+usdt_balance = mock_wallet.get("USDT", 0)
+
+# BUY logic
+if buy_price and current_price <= buy_price and usdt_balance >= min_usdt:
+    tokens_to_buy = round(min_usdt / current_price, 2)
+    msg_parts.append(
+        f"🟢 *Buy Alert*: {token_symbol_internal} at £{current_price:.3f}\n"
+        f"Target: Buy ~{tokens_to_buy} {token_symbol_internal} using £{min_usdt}\n"
+        f"Next Sell Target: ≥ £{sell_price}\n"
+        f"➡️ Suggested Swap: {min_usdt} USDT → {token_symbol_internal}"
+    )
+
+# SELL logic
+if sell_price and current_price >= sell_price and holding >= min_holding:
+    approx_value = holding * current_price
+    profit_pct = ((current_price - buy_price) / buy_price * 100) if buy_price else 0
+    msg_parts.append(
+        f"🔴 *Sell Alert*: {token_symbol_internal} at £{current_price:.3f}\n"
+        f"Holding: {holding} ≈ £{approx_value:.2f}\n"
+        f"Profit Zone: 🎯 ~{profit_pct:.1f}%\n"
+        f"➡️ Suggested Swap: {holding} {token_symbol_internal} → USDT"
+    )
     """Main function to fetch prices, calculate conditions, and send alerts."""
     now = datetime.datetime.now(MONITOR_TIMEZONE)
     current_time_str = now.strftime('%Y-%m-%d %H:%M:%S')
