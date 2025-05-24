@@ -125,13 +125,6 @@ else:
     change_3h = quote.get('percent_change_3h', 0)
     change_24h = quote.get('percent_change_24h', 0)
 
-        # Price Surge/Drop Alerts
-        if change_3h is not None and current_price is not None:
-            if change_3h >= PRICE_SURGE_PERCENT:
-                msg_parts.append(f"⬆️ *{symbol}* is up {change_3h:.2f}% in 3h! Current: £{current_price:.2f}")
-            if change_3h <= -PRICE_DROP_PERCENT:
-                msg_parts.append(f"⬇️ *{symbol}* down {abs(change_3h):.2f}% in 3h! Current: £{current_price:.2f}")
-
         # Target Profit
         if entry_price is not None and current_price is not None:
             if current_price >= entry_price * (1 + TARGET_PROFIT_PERCENT):
