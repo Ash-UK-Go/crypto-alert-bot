@@ -1,3 +1,4 @@
+# alert_bot.py
 import requests
 import time
 import json
@@ -5,7 +6,7 @@ import datetime
 import pytz
 import os
 
-# --- Load Configuration ---
+# --- Load Configuration from config.json ---
 try:
     with open('config.json') as f:
         config = json.load(f)
@@ -13,21 +14,24 @@ except Exception as e:
     print(f"Error loading config: {e}")
     exit(1)
 
+# --- Fetch API Keys from Environment Variables (SECURE WAY) ---
 CMC_API_KEY = os.getenv('CMC_API_KEY')
 TELEGRAM_BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN')
+
 if not CMC_API_KEY or not TELEGRAM_BOT_TOKEN:
-    print("Missing env vars. Set CMC_API_KEY and TELEGRAM_BOT_TOKEN.")
+    print("Missing environment variables. Please set CMC_API_KEY and TELEGRAM_BOT_TOKEN.")
     exit(1)
 
+# --- Extract settings ---
 TELEGRAM_CHAT_ID = config.get('telegram_chat_id')
 TRACKED_TOKENS_CONFIG = config.get('tracked_tokens', {})
-ENTRY_PRICES = {s: d.get('entry_price') for s, d in TRACKED_TOKENS_CONFIG.items()}
-TOKENS = list(TRACKED_TOKENS_CONFIG.keys())
+ENTRY_PRICES = {symbol: data.get('entry_price') for symbol, data in TRACKED_TOKENS_CONFIG.items()}
+TOKENS_TO_MONITOR = list(TRACKED_TOKENS_CONFIG.keys())
 
 ALERT_THRESHOLDS = config.get('alert_thresholds', {})
-TARGET_PROFIT = ALERT_THRESHOLDS.get('target_profit_percent', 4) / 100
-PRICE_SURGE = ALERT_THRESHOLDS.get('price_surge_percent', 5)
-PRICE_DROP = ALERT_THRESHOLDS.get('price_drop_percent', 5)
+TARGET_PROFIT_PERCENT = ALERT_THRESHOLDS.get('target_profit_percent', 4) / 100
+PRICE_SURGE_PERCENT = ALERT_THRESHOLDS.get('price_surge_percent', 5)
+PRICE_DROP_PERCENT = ALERT_THRESHOLDS.get('price_drop_percent', 5)
 
 TRADING_HOURS = config.get('trading_hours', {})
 START_HOUR = TRADING_HOURS.get('start_hour', 8)
@@ -43,8 +47,9 @@ HEADERS = {
     'X-CMC_PRO_API_KEY': CMC_API_KEY
 }
 CMC_URL = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
-TZ = pytz.timezone('Europe/London')
+MONITOR_TIMEZONE = pytz.timezone('Europe/London')
 
+# Simulated Wallet
 mock_wallet = {
     "USDT": 30,
     "POL": 120,
@@ -55,77 +60,90 @@ mock_wallet = {
     "DAI": 10
 }
 
-def send_telegram_alert(msg):
+def send_telegram_alert(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
-    payload = {'chat_id': TELEGRAM_CHAT_ID, 'text': msg, 'parse_mode': 'Markdown'}
+    payload = {
+        'chat_id': TELEGRAM_CHAT_ID,
+        'text': message,
+        'parse_mode': 'Markdown'
+    }
     try:
         requests.post(url, data=payload)
     except Exception as e:
         print(f"Error sending alert: {e}")
 
 def fetch_token_data(symbol):
-    cmc = TRACKED_TOKENS_CONFIG[symbol].get('cmc_symbol')
+    cmc_symbol = TRACKED_TOKENS_CONFIG.get(symbol, {}).get('cmc_symbol')
+    if not cmc_symbol:
+        return None
     try:
-        res = requests.get(CMC_URL, headers=HEADERS, params={ 'symbol': cmc, 'convert': 'GBP' }, timeout=10).json()
-        return res['data'][cmc]
+        res = requests.get(CMC_URL, headers=HEADERS, params={
+            'symbol': cmc_symbol,
+            'convert': 'GBP'
+        }).json()
+        return res['data'][cmc_symbol]
     except:
         return None
 
-def check_prices():
-    now = datetime.datetime.now(TZ)
+def check_prices_and_trigger_alerts():
+    now = datetime.datetime.now(MONITOR_TIMEZONE)
     if now.weekday() not in TRADING_DAYS or not (START_HOUR <= now.hour < END_HOUR):
         return
 
-    for token in TOKENS:
-        data = fetch_token_data(token)
+    for symbol in TOKENS_TO_MONITOR:
+        data = fetch_token_data(symbol)
         if not data:
             continue
 
-        q = data.get('quote', {}).get('GBP', {})
-        p = q.get('price')
-        c3 = q.get('percent_change_3h', 0)
-        c24 = q.get('percent_change_24h', 0)
+        quote = data.get('quote', {}).get('GBP', {})
+        current_price = quote.get('price')
+        change_3h = quote.get('percent_change_3h', 0)
+        change_24h = quote.get('percent_change_24h', 0)
 
-        entry = ENTRY_PRICES.get(token)
-        buy_price = TRACKED_TOKENS_CONFIG[token].get('buy_price')
-        sell_price = TRACKED_TOKENS_CONFIG[token].get('sell_price')
-        min_usdt = TRACKED_TOKENS_CONFIG[token].get('min_usdt_balance', 0)
-        min_holding = TRACKED_TOKENS_CONFIG[token].get('min_token_holding', 0)
+        entry_price = ENTRY_PRICES.get(symbol)
+        holding = mock_wallet.get(symbol, 0)
+        usdt_balance = mock_wallet.get("USDT", 0)
 
-        holding = mock_wallet.get(token, 0)
-        usdt = mock_wallet.get("USDT", 0)
+        msg_parts = []
 
-        msgs = []
+        # Price Surge/Drop Alerts
+        if change_3h is not None and current_price is not None:
+            if change_3h >= PRICE_SURGE_PERCENT:
+                msg_parts.append(f"⬆️ *{symbol}* is up {change_3h:.2f}% in 3h! Current: £{current_price:.2f}")
+            if change_3h <= -PRICE_DROP_PERCENT:
+                msg_parts.append(f"⬇️ *{symbol}* down {abs(change_3h):.2f}% in 3h! Current: £{current_price:.2f}")
 
-        if c3 >= PRICE_SURGE:
-            msgs.append(f"⬆️ *{token}* is up {c3:.2f}% in 3h! Current: £{p:.2f}")
-        if c3 <= -PRICE_DROP:
-            msgs.append(f"⬇️ *{token}* down {abs(c3):.2f}% in 3h! Current: £{p:.2f}")
+        # Target Profit
+        if entry_price is not None and current_price is not None:
+            if current_price >= entry_price * (1 + TARGET_PROFIT_PERCENT):
+                profit = (current_price - entry_price) * holding
+                msg_parts.append(f"🎯 Profit Target Hit: +£{profit:.2f}\nToken: {symbol}\nHolding: {holding}\nPrice: £{entry_price} → £{current_price:.2f}\nBase: £{entry_price}\n✅ Consider Booking")
 
-        if entry and p >= entry * (1 + TARGET_PROFIT):
-            gain = (p - entry) * holding
-            msgs.append(f"🎯 Profit Target Hit: +£{gain:.2f}\nToken: {token}\nHolding: {holding}\nPrice: £{entry} → £{p:.2f}\nBase: £{entry}\n✅ Consider Booking")
+        # BUY Logic
+        buy_price = TRACKED_TOKENS_CONFIG[symbol].get('buy_price')
+        sell_price = TRACKED_TOKENS_CONFIG[symbol].get('sell_price')
+        min_usdt = TRACKED_TOKENS_CONFIG[symbol].get('min_usdt_balance', 0)
+        min_holding = TRACKED_TOKENS_CONFIG[symbol].get('min_token_holding', 0)
 
-        if buy_price and p <= buy_price and usdt >= min_usdt:
-            qty = round(min_usdt / p, 2)
-            msgs.append(f"🟢 Buy Alert: {token} at £{p:.3f}\nTarget: Buy ~{qty} {token} using £{min_usdt}\nNext Sell Target: ≥ £{sell_price}\n➡️ Suggested Swap: {min_usdt} USDT → {token}")
+        if buy_price is not None and current_price is not None and current_price <= buy_price and usdt_balance >= min_usdt:
+            qty = round(min_usdt / current_price, 2)
+            msg_parts.append(f"🟢 Buy Alert: {symbol} at £{current_price:.3f}\nTarget: Buy ~{qty} {symbol} using £{min_usdt}\nNext Sell Target: ≥ £{sell_price}\n➡️ Suggested Swap: {min_usdt} USDT → {symbol}")
 
-        if sell_price and p >= sell_price and holding >= min_holding:
-            total = holding * p
-            profit_pct = ((p - buy_price) / buy_price * 100) if buy_price else 0
-            msgs.append(f"🔴 Sell Alert: {token} at £{p:.3f}\nHolding: {holding} ≈ £{total:.2f}\nProfit Zone: 🎯 ~{profit_pct:.1f}%\n➡️ Suggested Swap: {holding} {token} → USDT")
+        # SELL Logic
+        if sell_price is not None and current_price is not None and current_price >= sell_price and holding >= min_holding:
+            value = holding * current_price
+            profit_pct = ((current_price - buy_price) / buy_price) * 100 if buy_price else 0
+            msg_parts.append(f"🔴 Sell Alert: {symbol} at £{current_price:.3f}\nHolding: {holding} ≈ £{value:.2f}\nProfit Zone: 🎯 ~{profit_pct:.1f}%\n➡️ Suggested Swap: {holding} {symbol} → USDT")
 
-        if msgs:
-            full_msg = f"🚨 *Crypto Alert* 🚨\n\n" + '\n\n'.join(msgs)
-            send_telegram_alert(full_msg)
-        else:
-            print(f"[{now.strftime('%H:%M:%S')}] No alerts for {token}. Price: £{p:.2f}")
+        if msg_parts:
+            message = f"🚨 *Crypto Alert* 🚨\n\n" + '\n\n'.join(msg_parts)
+            send_telegram_alert(message)
 
+# --- Main Loop ---
 if __name__ == '__main__':
-    print("✅ Crypto Alert Bot Started")
     while True:
         try:
-            check_prices()
+            check_prices_and_trigger_alerts()
             time.sleep(60)
         except Exception as e:
             print(f"Unhandled error: {e}")
