@@ -49,7 +49,7 @@ HEADERS = {
 CMC_URL = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
 MONITOR_TIMEZONE = pytz.timezone('Europe/London')
 
-# Simulated Wallet
+# Simulated Wallet (replace with real wallet integration in future)
 mock_wallet = {
     "USDT": 30,
     "POL": 120,
@@ -59,6 +59,8 @@ mock_wallet = {
     "AAVE": 0.12,
     "DAI": 10
 }
+
+TEST_MODE = True  # Set to False after testing
 
 def send_telegram_alert(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -96,40 +98,51 @@ def check_prices_and_trigger_alerts():
             continue
 
         quote = data.get('quote', {}).get('GBP', {})
-TEST_MODE = True  # 🔁 Set to False after test run
 
-if TEST_MODE:
-    test_prices = {
-        "POL": 0.198,
-        "USDT": 0.74,
-        "ETH": 1920.00,
-        "WBTC": 87001.00,
-        "LINK": 13.20,
-        "DAI": 0.72,
-        "AAVE": 96.10
-    }
-    test_changes_3h = {
-        "POL": 6.5, "USDT": 0.2, "ETH": -5.3, "WBTC": 5.5,
-        "LINK": 5.7, "DAI": -5.1, "AAVE": 5.0
-    }
-    test_changes_24h = {
-        "POL": 8, "USDT": 0.5, "ETH": 1, "WBTC": 10,
-        "LINK": 5, "DAI": -2, "AAVE": 12
-    }
+        if TEST_MODE:
+            test_prices = {
+                "POL": 0.198,
+                "USDT": 0.74,
+                "ETH": 1920.00,
+                "WBTC": 87001.00,
+                "LINK": 13.20,
+                "DAI": 0.72,
+                "AAVE": 96.10
+            }
+            test_changes_3h = {
+                "POL": 6.5, "USDT": 0.2, "ETH": -5.3, "WBTC": 5.5,
+                "LINK": 5.7, "DAI": -5.1, "AAVE": 5.0
+            }
+            test_changes_24h = {
+                "POL": 8, "USDT": 0.5, "ETH": 1, "WBTC": 10,
+                "LINK": 5, "DAI": -2, "AAVE": 12
+            }
+            current_price = test_prices.get(symbol, quote.get('price'))
+            change_3h = test_changes_3h.get(symbol, 0)
+            change_24h = test_changes_24h.get(symbol, 0)
+        else:
+            current_price = quote.get('price')
+            change_3h = quote.get('percent_change_3h', 0)
+            change_24h = quote.get('percent_change_24h', 0)
 
-    current_price = test_prices.get(symbol, quote.get('price'))
-    change_3h = test_changes_3h.get(symbol, 0)
-    change_24h = test_changes_24h.get(symbol, 0)
-else:
-    current_price = quote.get('price')
-    change_3h = quote.get('percent_change_3h', 0)
-    change_24h = quote.get('percent_change_24h', 0)
+        entry_price = ENTRY_PRICES.get(symbol)
+        holding = mock_wallet.get(symbol, 0)
+        usdt_balance = mock_wallet.get("USDT", 0)
+
+        msg_parts = []
+
+        # Price Surge/Drop Alerts
+        if change_3h >= PRICE_SURGE_PERCENT:
+            msg_parts.append(f"⬆️ *{symbol}* is up {change_3h:.2f}% in 3h! Current: £{current_price:.2f}")
+        if change_3h <= -PRICE_DROP_PERCENT:
+            msg_parts.append(f"⬇️ *{symbol}* down {abs(change_3h):.2f}% in 3h! Current: £{current_price:.2f}")
 
         # Target Profit
-        if entry_price is not None and current_price is not None:
-            if current_price >= entry_price * (1 + TARGET_PROFIT_PERCENT):
-                profit = (current_price - entry_price) * holding
-                msg_parts.append(f"🎯 Profit Target Hit: +£{profit:.2f}\nToken: {symbol}\nHolding: {holding}\nPrice: £{entry_price} → £{current_price:.2f}\nBase: £{entry_price}\n✅ Consider Booking")
+        if entry_price and current_price >= entry_price * (1 + TARGET_PROFIT_PERCENT):
+            msg_parts.append(
+                f"🎯 Profit Target Hit: +£{(current_price - entry_price) * holding:.2f}\n"
+                f"Token: {symbol}\nHolding: {holding}\nPrice: £{entry_price} → £{current_price:.2f}\n"
+                f"Base: £{entry_price}\n✅ Consider Booking")
 
         # BUY Logic
         buy_price = TRACKED_TOKENS_CONFIG[symbol].get('buy_price')
@@ -137,15 +150,23 @@ else:
         min_usdt = TRACKED_TOKENS_CONFIG[symbol].get('min_usdt_balance', 0)
         min_holding = TRACKED_TOKENS_CONFIG[symbol].get('min_token_holding', 0)
 
-        if buy_price is not None and current_price is not None and current_price <= buy_price and usdt_balance >= min_usdt:
+        if buy_price and current_price <= buy_price and usdt_balance >= min_usdt:
             qty = round(min_usdt / current_price, 2)
-            msg_parts.append(f"🟢 Buy Alert: {symbol} at £{current_price:.3f}\nTarget: Buy ~{qty} {symbol} using £{min_usdt}\nNext Sell Target: ≥ £{sell_price}\n➡️ Suggested Swap: {min_usdt} USDT → {symbol}")
+            msg_parts.append(
+                f"🟢 Buy Alert: {symbol} at £{current_price:.3f}\n"
+                f"Target: Buy ~{qty} {symbol} using £{min_usdt}\n"
+                f"Next Sell Target: ≥ £{sell_price}\n"
+                f"➡️ Suggested Swap: {min_usdt} USDT → {symbol}")
 
         # SELL Logic
-        if sell_price is not None and current_price is not None and current_price >= sell_price and holding >= min_holding:
+        if sell_price and current_price >= sell_price and holding >= min_holding:
             value = holding * current_price
             profit_pct = ((current_price - buy_price) / buy_price) * 100 if buy_price else 0
-            msg_parts.append(f"🔴 Sell Alert: {symbol} at £{current_price:.3f}\nHolding: {holding} ≈ £{value:.2f}\nProfit Zone: 🎯 ~{profit_pct:.1f}%\n➡️ Suggested Swap: {holding} {symbol} → USDT")
+            msg_parts.append(
+                f"🔴 Sell Alert: {symbol} at £{current_price:.3f}\n"
+                f"Holding: {holding} ≈ £{value:.2f}\n"
+                f"Profit Zone: 🎯 ~{profit_pct:.1f}%\n"
+                f"➡️ Suggested Swap: {holding} {symbol} → USDT")
 
         if msg_parts:
             message = f"🚨 *Crypto Alert* 🚨\n\n" + '\n\n'.join(msg_parts)
