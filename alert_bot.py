@@ -125,8 +125,6 @@ else:
     change_3h = quote.get('percent_change_3h', 0)
     change_24h = quote.get('percent_change_24h', 0)
 
-        msg_parts = []
-
         # Price Surge/Drop Alerts
         if change_3h is not None and current_price is not None:
             if change_3h >= PRICE_SURGE_PERCENT:
