@@ -96,9 +96,34 @@ def check_prices_and_trigger_alerts():
             continue
 
         quote = data.get('quote', {}).get('GBP', {})
-        current_price = quote.get('price')
-        change_3h = quote.get('percent_change_3h', 0)
-        change_24h = quote.get('percent_change_24h', 0)
+TEST_MODE = True  # 🔁 Set to False after test run
+
+if TEST_MODE:
+    test_prices = {
+        "POL": 0.198,
+        "USDT": 0.74,
+        "ETH": 1920.00,
+        "WBTC": 87001.00,
+        "LINK": 13.20,
+        "DAI": 0.72,
+        "AAVE": 96.10
+    }
+    test_changes_3h = {
+        "POL": 6.5, "USDT": 0.2, "ETH": -5.3, "WBTC": 5.5,
+        "LINK": 5.7, "DAI": -5.1, "AAVE": 5.0
+    }
+    test_changes_24h = {
+        "POL": 8, "USDT": 0.5, "ETH": 1, "WBTC": 10,
+        "LINK": 5, "DAI": -2, "AAVE": 12
+    }
+
+    current_price = test_prices.get(symbol, quote.get('price'))
+    change_3h = test_changes_3h.get(symbol, 0)
+    change_24h = test_changes_24h.get(symbol, 0)
+else:
+    current_price = quote.get('price')
+    change_3h = quote.get('percent_change_3h', 0)
+    change_24h = quote.get('percent_change_24h', 0)
 
         entry_price = ENTRY_PRICES.get(symbol)
         holding = mock_wallet.get(symbol, 0)
