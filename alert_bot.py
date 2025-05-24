@@ -125,10 +125,6 @@ else:
     change_3h = quote.get('percent_change_3h', 0)
     change_24h = quote.get('percent_change_24h', 0)
 
-        entry_price = ENTRY_PRICES.get(symbol)
-        holding = mock_wallet.get(symbol, 0)
-        usdt_balance = mock_wallet.get("USDT", 0)
-
         msg_parts = []
 
         # Price Surge/Drop Alerts
