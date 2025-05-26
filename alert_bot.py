@@ -84,7 +84,7 @@ mock_wallet = {
 
 # --- TEST MODE Flag ---
 # Set to True for testing with predefined prices/changes, False for live CMC data.
-TEST_MODE = True 
+TEST_MODE = False 
 
 # --- Functions ---
 
