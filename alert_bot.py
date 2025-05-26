@@ -355,8 +355,9 @@ if __name__ == '__main__':
             print(f"❌ [{datetime.datetime.now(MONITOR_TIMEZONE).strftime('%Y-%m-%d %H:%M:%S')}] An unhandled error occurred in the main loop: {e}")
             # Attempt to reconnect Web3 in case of network issues
             try:
+                # Declare w3 as global *before* reassigning it
+                global w3 
                 print("Attempting to re-establish Web3 connection...")
-                global w3 # Declare w3 as global to reassign
                 w3 = Web3(Web3.HTTPProvider(polygon_rpc))
                 if not w3.is_connected():
                     raise Exception("Reconnection attempt failed.")
