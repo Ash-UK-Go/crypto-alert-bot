@@ -332,6 +332,10 @@ def check_prices_and_trigger_alerts():
 if __name__ == '__main__':
     print("--- Crypto Alert Bot Starting with Live Wallet Balances ---")
     
+    # Declare w3 as global at the very beginning of the main execution block
+    # so that it can be reassigned within the except block without SyntaxError.
+    global w3 
+
     if not TOKENS_TO_MONITOR: 
         print("❌ No tokens configured to monitor in config.json. Bot will exit.")
         exit(1)
@@ -355,10 +359,8 @@ if __name__ == '__main__':
             print(f"❌ [{datetime.datetime.now(MONITOR_TIMEZONE).strftime('%Y-%m-%d %H:%M:%S')}] An unhandled error occurred in the main loop: {e}")
             # Attempt to reconnect Web3 in case of network issues
             try:
-                # Declare w3 as global *before* reassigning it
-                global w3 
                 print("Attempting to re-establish Web3 connection...")
-                w3 = Web3(Web3.HTTPProvider(polygon_rpc))
+                w3 = Web3(Web3.HTTPProvider(polygon_rpc)) # w3 is now globally recognized here
                 if not w3.is_connected():
                     raise Exception("Reconnection attempt failed.")
                 print("Web3 reconnected successfully.")
