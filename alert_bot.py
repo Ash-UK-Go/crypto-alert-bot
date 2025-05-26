@@ -334,8 +334,7 @@ if __name__ == '__main__':
     
     # Declare w3 as global at the very beginning of the main execution block
     # so that it can be reassigned within the except block without SyntaxError.
-    global w3 
-
+    
     if not TOKENS_TO_MONITOR: 
         print("❌ No tokens configured to monitor in config.json. Bot will exit.")
         exit(1)
