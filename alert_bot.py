@@ -1,3 +1,4 @@
+# alert_bot.py
 import requests
 import time
 import json
@@ -48,7 +49,7 @@ HEADERS = {
 CMC_URL = 'https://pro-api.coinmarketcap.com/v1/cryptocurrency/quotes/latest'
 MONITOR_TIMEZONE = pytz.timezone('Europe/London')
 
-# --- Polygon wallet live fetch ---
+# --- Web3 Polygon wallet setup ---
 polygon_rpc = config.get("polygon_rpc")
 w3 = Web3(Web3.HTTPProvider(polygon_rpc))
 wallet_address = Web3.to_checksum_address(config.get("polygon_wallet"))
@@ -78,7 +79,7 @@ def get_token_balances():
             contract = w3.eth.contract(address=Web3.to_checksum_address(contract_address), abi=ERC20_ABI)
             balance = contract.functions.balanceOf(wallet_address).call()
             balances[symbol] = balance / (10 ** decimals)
-        except Exception as e:
+        except Exception:
             balances[symbol] = 0
     return balances
 
@@ -126,12 +127,14 @@ def check_prices_and_trigger_alerts():
 
         msg_parts = []
 
+        # Surge/Drop alerts
         if change_3h >= PRICE_SURGE_PERCENT:
-            msg_parts.append(f"🔺 *{symbol}* is up {change_3h:.2f}% in 3h! Current: £{current_price:.2f}")
+            msg_parts.append(f"📈 *{symbol}* up {change_3h:.2f}% in 3h! (£{current_price:.2f})")
         if change_3h <= -PRICE_DROP_PERCENT:
-            msg_parts.append(f"🔻 *{symbol}* dropped {abs(change_3h):.2f}% in 3h! Current: £{current_price:.2f}")
+            msg_parts.append(f"📉 *{symbol}* down {abs(change_3h):.2f}% in 3h! (£{current_price:.2f})")
 
-        if entry_price and current_price >= entry_price * (1 + TARGET_PROFIT_PERCENT):
+        # Profit alert (holding > 0)
+        if entry_price and holding > 0 and current_price >= entry_price * (1 + TARGET_PROFIT_PERCENT):
             gain_pct = ((current_price - entry_price) / entry_price) * 100
             profit_gbp = (current_price - entry_price) * holding
             msg_parts.append(
@@ -141,37 +144,38 @@ def check_prices_and_trigger_alerts():
                 f"✅ Consider Booking"
             )
 
+        # 24h range analysis
         high_approx = current_price / (1 + change_24h / 100) if change_24h != -100 else current_price
         low_approx = min(current_price, high_approx)
         range_diff = abs(current_price - low_approx)
-
         if range_diff > 0.001:
             top_threshold = low_approx + 0.9 * range_diff
             bottom_threshold = low_approx + 0.1 * range_diff
             if current_price >= top_threshold:
-                msg_parts.append(f"📈 *{symbol}* near top 10% of 24h range (£{current_price:.2f})")
+                msg_parts.append(f"📊 *{symbol}* near top 10% of 24h range (£{current_price:.2f})")
             elif current_price <= bottom_threshold:
                 msg_parts.append(f"📉 *{symbol}* near bottom 10% of 24h range (£{current_price:.2f})")
 
-        token_conf = TRACKED_TOKENS_CONFIG.get(symbol, {})
-        buy_price = token_conf.get('buy_price')
-        sell_price = token_conf.get('sell_price')
-        min_usdt = token_conf.get('min_usdt_balance', 0)
-        min_holding = token_conf.get('min_token_holding', 0)
+        # Buy/Sell logic
+        conf = TRACKED_TOKENS_CONFIG.get(symbol, {})
+        buy_price = conf.get('buy_price')
+        sell_price = conf.get('sell_price')
+        min_usdt = conf.get('min_usdt_balance', 0)
+        min_holding = conf.get('min_token_holding', 0)
 
         if buy_price and current_price <= buy_price and usdt_balance >= min_usdt:
             qty = round(min_usdt / current_price, 2)
             msg_parts.append(
-                f"🟢 Buy Alert: {symbol} at £{current_price:.3f}\n"
-                f"Target: Buy ~{qty} {symbol} using £{min_usdt}\n"
-                f"Next Sell Target: ≥ £{sell_price}"
+                f"🟢 *Buy Alert*: {symbol} at £{current_price:.3f}\n"
+                f"Buy ~{qty} {symbol} using £{min_usdt}\n"
+                f"Next Target: ≥ £{sell_price}"
             )
 
         if sell_price and current_price >= sell_price and holding >= min_holding:
             value = holding * current_price
             profit_pct = ((current_price - buy_price) / buy_price * 100) if buy_price else 0
             msg_parts.append(
-                f"🔴 Sell Alert: {symbol} at £{current_price:.3f}\n"
+                f"🔴 *Sell Alert*: {symbol} at £{current_price:.3f}\n"
                 f"Holding: {holding:.4f} ≈ £{value:.2f}\n"
                 f"Profit Zone: 🎯 ~{profit_pct:.1f}%"
             )
@@ -180,6 +184,7 @@ def check_prices_and_trigger_alerts():
             message = f"🚨 *Crypto Alert!* 🚨\n\n" + '\n\n'.join(msg_parts)
             send_telegram_alert(message)
 
+# --- Main loop ---
 if __name__ == '__main__':
     print("--- Crypto Alert Bot Running with Live Wallet Balances ---")
     while True:
