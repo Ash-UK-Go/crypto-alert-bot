@@ -7,12 +7,13 @@ import os
 from web3 import Web3 
 
 # --- Load Configuration from config.json ---
+CONFIG_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'config.json')
 try:
-    with open('config.json') as f:
+    with open(CONFIG_PATH) as f:
         config = json.load(f)
-    print("Configuration loaded successfully from config.json.")
+    print(f"Configuration loaded successfully from {CONFIG_PATH}.")
 except FileNotFoundError:
-    print("Error: config.json not found. Please create it in the same directory as alert_bot.py.")
+    print(f"Error: config.json not found at {CONFIG_PATH}. Please create it in the same directory as alert_bot.py.")
     exit(1)
 except json.JSONDecodeError as e:
     print(f"Error: Invalid JSON in config.json: {e}. Please check its format.")
@@ -322,7 +323,7 @@ def check_prices_and_trigger_alerts():
 
         # Send combined alert if any conditions were met
         if msg_parts:
-            message = f"🚨 *Crypto Alert!* 🚨\n\n" + '\n\n'.join(msg_parts) 
+            message = "🚨 *Crypto Alert!* 🚨\n\n" + "\n\n".join(msg_parts)
             send_telegram_alert(message)
         else:
             print(f"[{current_time_str}] No alerts triggered for '{symbol}'. Current Price: £{current_price:,.2f}")
